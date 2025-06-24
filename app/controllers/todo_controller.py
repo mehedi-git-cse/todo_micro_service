@@ -115,5 +115,15 @@ class TodoController:
         await db.refresh(todo)
 
         return TodoInDB.from_orm(todo)
+    
+    async def delete_todo(self, todo_id: int, db: AsyncSession) -> None:
+        result = await db.execute(select(Todo).where(Todo.id == todo_id))
+        todo = result.scalar_one_or_none()
+
+        if not todo:
+            raise Exception("Todo not found")
+
+        await db.delete(todo)
+        await db.commit()
 
 todo_controller = TodoController()

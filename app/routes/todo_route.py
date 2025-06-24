@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 from app.controllers.todo_controller import todo_controller
 from app.core.response_engine import success, error
 from app.models.todo_schema import TodoCreate, TodoUpdate
@@ -67,5 +66,16 @@ async def update_todo(
     try:
         updated = await todo_controller.update_todo(todo_id, todo_data, db)
         return success(data=updated, msg="Todo updated successfully")
+    except Exception as e:
+        return error(msg=str(e), status_code=404)
+    
+@router.delete("/todos/{todo_id}")
+async def delete_todo(
+    todo_id: int = Path(..., title="Todo ID to delete"),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        await todo_controller.delete_todo(todo_id, db)
+        return success(msg="Todo deleted successfully")
     except Exception as e:
         return error(msg=str(e), status_code=404)
