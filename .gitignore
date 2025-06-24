@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+*.log
+
+# Virtual Environment
+venv/
+.venv/
+
+# VSCode Settings
+.vscode/
+
+# Environment Files
+.env
+.env.*
+
+# Pytest Cache
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# SQLite Database
+*.sqlite3
+
+# OS Specific
+.DS_Store
+Thumbs.db
