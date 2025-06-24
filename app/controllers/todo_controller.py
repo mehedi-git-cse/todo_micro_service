@@ -1,11 +1,10 @@
 from datetime import datetime
 from app.models.todo_schema import TodoCreate, TodoUpdate, TodoInDB
 from app.models.todo_db_model import Todo
-from app.core.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import insert
-from typing import Optional
+from typing import List, Optional
 
 class TodoController:
     async def create_todo(self, todo: TodoCreate, db: AsyncSession) -> TodoInDB:
@@ -45,5 +44,76 @@ class TodoController:
         except Exception as e:
             await db.rollback()  # rollback for DB safety
             raise Exception(f"[ERROR] Todo creation failed: {e}")  # exception route এ পাঠাবে
+        
+    async def get_all_todos(self, db: AsyncSession) -> TodoInDB:
+        try:
+            result = await db.execute(select(Todo))
+            todos= result.scalars().all()
+
+            return [TodoInDB.model_validate(todo) for todo in todos]
+        
+        except Exception as e:
+            raise Exception(f"[ERROR] Failed to fetch todos: {e}")
+        
+    async def get_filtered_todos(
+        self,
+        db: AsyncSession,
+        skip: int = 0,
+        limit: int = 10,
+        is_completed: Optional[bool] = None,
+        search: Optional[str] = None
+    ) -> List[TodoInDB]:
+        try:
+            query = select(Todo)
+
+            if is_completed is not None:
+                query = query.where(Todo.is_completed == is_completed)
+
+            if search:
+                like_term = f"%{search}%"
+                query = query.where(
+                    (Todo.title.ilike(like_term)) |
+                    (Todo.description.ilike(like_term)) |
+                    (Todo.name.ilike(like_term))
+                )
+
+            query = query.offset(skip).limit(limit)
+
+            result = await db.execute(query)
+            todos = result.scalars().all()
+
+            return [TodoInDB.model_validate(todo) for todo in todos]
+
+        except Exception as e:
+            raise Exception(f"[ERROR] Filtered todos fetch failed: {e}")
+
+    async def get_todo_by_id(self, todo_id: int, db: AsyncSession) -> TodoInDB:
+        try:
+            result = await db.execute(select(Todo).where(Todo.id == todo_id))
+            todo = result.scalars().first()
+
+            if not todo:
+                raise Exception(f"Todo with ID {todo_id} not found")
+
+            return TodoInDB.model_validate(todo)
+        except Exception as e:
+            raise Exception(f"[ERROR] Failed to fetch todo: {e}")
+            
+    async def update_todo(self, todo_id: int, todo_data: TodoUpdate, db: AsyncSession) -> TodoInDB:
+        result = await db.execute(select(Todo).where(Todo.id == todo_id))
+        todo = result.scalar_one_or_none()
+
+        if not todo:
+            raise Exception("Todo not found")
+
+        for field, value in todo_data.model_dump(exclude_unset=True).items():
+            setattr(todo, field, value)
+
+        todo.updated_at = datetime.utcnow()
+
+        await db.commit()
+        await db.refresh(todo)
+
+        return TodoInDB.from_orm(todo)
 
 todo_controller = TodoController()
