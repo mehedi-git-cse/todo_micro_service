@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     ALLOWED_ORIGINS: list = ["*"]
 
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "atik-secret-key")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60)
+
     class Config:
         case_sensitive = True
         env_file = ".env"

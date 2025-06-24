@@ -1,6 +1,6 @@
 import time
 from fastapi import status as http_status
-from typing import Any, Optional
+from typing import Any
 
 def make_response(
     data: Any = None,

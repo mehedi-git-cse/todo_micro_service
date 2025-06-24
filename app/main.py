@@ -1,19 +1,23 @@
 from fastapi import FastAPI, Request
-from app.routes import todo_route
+from app.routes import todo_route, token_route
 from app.core.response_engine import success, error
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
+from app.middlewares.auth_middleware import AuthMiddleware
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
 app = FastAPI(
     title="FAST API",
-    description="A simple TODO API built with FastAPI project",
+    description="A simple TODO API built with FastAPI",
     version="1.0.0"
 )
 
+app.add_middleware(AuthMiddleware)
+
 # Include routers
-app.include_router(todo_route.router, prefix="/api/v1", tags=["todos"])
+app.include_router(token_route.router, prefix="/api/v1/auth", tags=["authentication"])
+app.include_router(todo_route.router, prefix="/api/v1/todos", tags=["todos"])
 
 @app.get("/", tags=["root"])
 def root():
