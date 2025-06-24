@@ -8,7 +8,7 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
 app = FastAPI(
     title="FAST API",
-    description="A simple TODO API built with FastAPI",
+    description="A simple TODO API built with FastAPI project",
     version="1.0.0"
 )
 
